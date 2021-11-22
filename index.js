@@ -1,8 +1,9 @@
 let canvas;
 let ctx;
-let canvasWidth = 1200;
-let canvasHeight = 800;
+let canvasWidth = 1000;
+let canvasHeight = 600;
 let keys = [];
+let bullets = [];
 let ship;
  
 document.addEventListener('DOMContentLoaded', SetupCanvas);
@@ -28,7 +29,7 @@ function HandleKeyDown(e){
 
 function HandleKeyUp(e){
     keys[e.keyCode] = false;
-    if (e.keyCode === 32){
+    if (e.keyCode === 70){
         bullets.push(new Bullet(ship.angle));
     }
 }
@@ -92,6 +93,28 @@ class Ship {
         ctx.stroke();
     }
 }
+
+class Bullet{
+    constructor(angle) {
+        this.x = ship.noseX;
+        this.y = ship.noseY;
+        this.angle = angle;
+        this.height = 4;
+        this.width = 4;
+        this.speed = 5;
+        this.velX = 0;
+        this.velY = 0;
+    }
+    Update(){
+        let radians = this.angle / Math.PI * 180;
+        this.x -= Math.cos(radians) * this.speed;
+        this.y -= Math.sin(radians) * this.speed;
+    }
+    Draw(){
+        ctx.fillStyle = 'white';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+}
  
 function Render() {
     ship.movingForward = (keys[87]);
@@ -104,14 +127,17 @@ function Render() {
     }
    
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
- 
     ctx.fillStyle = 'white';
-    ctx.font = '21px Arial';
  
     ship.Update();
     ship.Draw();
- 
-    ctx.font = '21px Arial';
+
+    if (bullets.length !== 0) {
+        for(let i = 0; i < bullets.length; i++){
+            bullets[i].Update();
+            bullets[i].Draw();
+        }
+    }
  
     requestAnimationFrame(Render);
 }
