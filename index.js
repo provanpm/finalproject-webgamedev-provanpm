@@ -6,6 +6,11 @@ let keys = [];
 let bullets = [];
 let asteroids = [];
 let ship;
+let score = 0;
+let lives = 3;
+
+let highScore;
+let localStorageName = "HighScore";
  
 document.addEventListener('DOMContentLoaded', SetupCanvas);
 
@@ -25,6 +30,12 @@ function SetupCanvas(){
     document.body.addEventListener("keydown", HandleKeyDown);
     document.body.addEventListener("keyup", HandleKeyUp);
  
+    if (localStorage.getItem(localStorageName) == null) {
+        highScore = 0;
+    } else {
+        highScore = localStorage.getItem(localStorageName);
+    }
+
     Render();
 }
 
@@ -179,6 +190,24 @@ function CircleCollision(p1x, p1y, r1, p2x, p2y, r2){
         return false;
     }
 }
+
+function DrawLifeShips(){
+    let startX = 950;
+    let startY = 10;
+    let points = [[9, 9], [-9, 9]];
+    ctx.strokeStyle = 'white';
+    for(let i = 0; i < lives; i++){
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        for(let j = 0; j < points.length; j++){
+            ctx.lineTo(startX + points[j][0], 
+                startY + points[j][1]);
+        }
+        ctx.closePath();
+        ctx.stroke();
+        startX -= 30;
+    }
+}
  
 function Render(){
     ship.movingForward = (keys[87]);
@@ -192,6 +221,18 @@ function Render(){
    
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     ctx.fillStyle = 'white';
+    ctx.font = '21px Arial';
+    ctx.fillText("SCORE : " + score.toString(), 20, 35);
+
+    if(lives <= 0){
+        document.body.removeEventListener("keydown", HandleKeyDown);
+        document.body.removeEventListener("keyup", HandleKeyUp);
+ 
+        ship.visible = false;
+        ctx.fillStyle = 'white';
+        ctx.font = '50px Arial';
+        ctx.fillText("GAME OVER", canvasWidth / 2 - 150, canvasHeight / 2);
+    }
 
     if(asteroids.length === 0){
         ship.x = canvasWidth / 2;
@@ -205,6 +246,8 @@ function Render(){
         }
     }
 
+    DrawLifeShips();
+
     if (asteroids.length !== 0){
         for(let k = 0; k < asteroids.length; k++){
             if(CircleCollision(ship.x, ship.y, 11, asteroids[k].x, asteroids[k].y, asteroids[k].collisionRadius)){
@@ -212,6 +255,7 @@ function Render(){
                 ship.y = canvasHeight / 2;
                 ship.velX = 0;
                 ship.velY = 0;
+                lives -= 1;
             }
         }
     }
@@ -230,6 +274,7 @@ function Render(){
                     }
                     asteroids.splice(l,1);
                     bullets.splice(m,1);
+                    score += 20;
          
                     break loop1;
                 }
@@ -255,6 +300,11 @@ function Render(){
             asteroids[j].Draw(j);
         }
     }
+
+    highScore = Math.max(score, highScore);
+    localStorage.setItem(localStorageName, highScore);
+    ctx.font = '21px Arial';
+    ctx.fillText("HIGH SCORE : " + highScore.toString(), 20, 70);
  
     requestAnimationFrame(Render);
 }
